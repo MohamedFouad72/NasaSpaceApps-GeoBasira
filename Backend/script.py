@@ -333,6 +333,6 @@ def air_weather(lat: float = Query(...), lon: float = Query(...), hours: int = Q
 if __name__ == "__main__":
     import uvicorn
     # port 8000 used earlier in conversation; change if needed
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
 
     
