@@ -1,0 +1,25 @@
+{
+  "lat": 31.438037173124464,
+  "lon": -94.8662567138672,
+  "timestamp": "2025-10-03T10:37:10.585124Z",
+  "pollutants": {},
+  "weather": {
+    "current": {
+      "temp": 30.9,
+      "wind": 9.6,
+      "precip": 0.0
+    },
+    "summary": {
+      "avg_wind": 9.185416666666667,
+      "max_temp": 31.8,
+      "rain": 10.1
+    }
+  },
+  "advice": {
+    "level": "Good",
+    "messages": [
+      "Rain expected \u2014 this may improve air quality."
+    ],
+    "score": -1
+  }
+}
