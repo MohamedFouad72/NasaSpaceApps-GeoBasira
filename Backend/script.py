@@ -141,76 +141,72 @@ def fetch_air_quality_open_meteo(lat: float, lon: float, hours: int = 48) -> Dic
                 pollutants_data[key] = {"value": None, "unit": units.get(key, "")}
     return pollutants_data
 
-def fetch_weather_open_meteo(lat: float, lon: float, hours: int = 48) -> Dict[str, Any]:
-    url = "https://api.open-meteo.com/v1/forecast"
-    weather_vars = ["temperature_2m","wind_speed_10m","precipitation","relativehumidity_2m","uv_index","cloudcover"]
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "hourly": ",".join(weather_vars),
-        "forecast_days": max(1, int(hours / 24)),
-        "timezone": "UTC"
+def get_openaq_measurements(lat, lon, radius_m=5000, days=7, max_locations=3):
+    """
+    Fetch nearby OpenAQ measurements for the last `days` days.
+    Returns a JSON-like dict with mean values per pollutant.
+    """
+    api_key = os.environ.get("OPENAQ_API_KEY") 
+    client = OpenAQ(api_key=api_key)
+    dt_to = datetime.now(timezone.utc).replace(microsecond=0)
+    dt_from = dt_to - timedelta(days=days)
+
+    # Step 1: Nearby locations
+    locs = client.locations.list(
+        coordinates=(lat, lon),
+        radius=radius_m,
+        limit=max_locations
+    ).results
+
+    if not locs:
+        print("[info] No nearby stations found.")
+        return {"lat": lat, "lon": lon, "pollutants": []}
+
+    all_meas = []
+
+    # Step 2: For each location, get sensors and fetch measurements
+    for loc in locs:
+        sensors = client.locations.sensors(locations_id=loc.id).results
+        if not sensors:
+            continue
+
+        for s in sensors:
+            meas = client.measurements.list(
+                sensors_id=s.id,
+                datetime_from=dt_from,
+                datetime_to=dt_to,
+                limit=100
+            ).results
+
+            for m in meas:
+                # Each sensor has a parameter object with a 'displayName'
+                param_name = s.parameter.get('displayName') if isinstance(s.parameter, dict) else s.parameter
+                if m.value is not None and m.value >= 0:
+                    all_meas.append({
+                        "location": loc.name,
+                        "pollutant": param_name,
+                        "value": m.value
+                    })
+
+    if not all_meas:
+        print("[info] No measurements found in this area/time window.")
+        return {"lat": lat, "lon": lon, "pollutants": []}
+
+    # Step 3: Aggregate means
+    df = pd.DataFrame(all_meas)
+    pollutant_means = df.groupby('pollutant')['value'].mean().reset_index()
+
+    # Step 4: Build JSON output
+    result_json = {
+        "lat": lat,
+        "lon": lon,
+        "pollutants": [
+            {"name": row['pollutant'], "mean_value": row['value']}
+            for _, row in pollutant_means.iterrows()
+        ]
     }
-    try:
-        resp = requests.get(url, params=params, timeout=15)
-        resp.raise_for_status()
-        data = resp.json()
-    except Exception as e:
-        print(f"[warn] Open-Meteo weather fetch failed: {e}")
-        return {}
 
-    weather_out = {}
-    hourly = data.get("hourly", {})
-    units = data.get("hourly_units", {})
-    if "time" in hourly:
-        # pick first timestep as representative
-        for key in weather_vars:
-            try:
-                val = hourly.get(key, [None])[0]
-                weather_out[key] = float(val) if val is not None else None
-            except Exception:
-                weather_out[key] = None
-    return weather_out
-
-def fetch_openaq(lat: float, lon: float, radius_m: int = 5000) -> Optional[Dict[str, Any]]:
-    """
-    Optional: call OpenAQ to get nearby station means.
-    Requires environment variable OPENAQ_API_KEY if you want higher limits; otherwise anonymous calls may work.
-    This returns a simple list of pollutant means or None if not available.
-    """
-    api_key = os.environ.get("OPENAQ_API_KEY")
-    try:
-        base = "https://api.openaq.org/v2/measurements"
-        params = {
-            "coordinates": f"{lat},{lon}",
-            "radius": radius_m,
-            "limit": 100,
-            "sort": "desc"
-        }
-        headers = {}
-        if api_key:
-            headers["Authorization"] = f"Bearer {api_key}"
-        resp = requests.get(base, params=params, headers=headers, timeout=15)
-        resp.raise_for_status()
-        data = resp.json()
-        results = data.get("results", [])
-        if not results:
-            return None
-        # compute mean per parameter
-        agg = {}
-        counts = {}
-        for r in results:
-            p = r.get("parameter")
-            v = r.get("value")
-            if p is None or v is None:
-                continue
-            agg[p] = agg.get(p, 0.0) + float(v)
-            counts[p] = counts.get(p, 0) + 1
-        out = [{"name": p, "mean_value": agg[p] / counts[p]} for p in agg.keys()]
-        return {"pollutants": out}
-    except Exception as e:
-        print(f"[info] OpenAQ fetch skipped/failed: {e}")
-        return None
+    return result_json
 
 # -------------------------
 # Report generator
