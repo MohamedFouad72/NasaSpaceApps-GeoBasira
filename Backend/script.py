@@ -115,19 +115,21 @@ def fetch_air_quality_open_meteo(lat: float, lon: float, hours: int = 48) -> Dic
         "forecast_days": max(1, int(hours / 24)),
         "timezone": "UTC"
     }
+    print(f"[debug] fetch_air_quality_open_meteo called for {lat},{lon}")
     try:
+        # use requests.get directly (or session if you already added one)
         resp = requests.get(url, params=params, timeout=15)
+        print(f"[debug] Open-Meteo AQ HTTP {resp.status_code} for {url}")
         resp.raise_for_status()
         data = resp.json()
     except Exception as e:
-        # Return empty dict on failure; frontend should handle missing data gracefully
-        print(f"[warn] Open-Meteo air-quality fetch failed: {e}")
+        # NO placeholder values here — only log the failure and return empty dict
+        print(f"[warn] Open-Meteo air-quality fetch failed for {lat},{lon}: {e}")
         return {}
 
     pollutants_data: Dict[str, Dict[str, Any]] = {}
-    hourly = data.get("hourly", {})
-    units = data.get("hourly_units", {})
-    # Take first timestep as representative (you may want mean/percentile instead)
+    hourly = data.get("hourly", {}) or {}
+    units = data.get("hourly_units", {}) or {}
     if "time" in hourly:
         for key, values in hourly.items():
             if key == "time":
@@ -138,7 +140,8 @@ def fetch_air_quality_open_meteo(lat: float, lon: float, hours: int = 48) -> Dic
                     "value": float(first_val) if first_val is not None else None,
                     "unit": units.get(key, "")
                 }
-            except Exception:
+            except Exception as e:
+                print(f"[warn] parsing open-meteo key '{key}' failed: {e}")
                 pollutants_data[key] = {"value": None, "unit": units.get(key, "")}
     return pollutants_data
 def fetch_weather_open_meteo(lat: float, lon: float, hours: int = 48) -> Dict[str, Any]:
@@ -151,43 +154,39 @@ def fetch_weather_open_meteo(lat: float, lon: float, hours: int = 48) -> Dict[st
         "forecast_days": max(1, int(hours / 24)),
         "timezone": "UTC"
     }
+    print(f"[debug] fetch_weather_open_meteo called for {lat},{lon}")
     try:
         resp = requests.get(url, params=params, timeout=15)
+        print(f"[debug] Open-Meteo weather HTTP {resp.status_code} for {url}")
         resp.raise_for_status()
         data = resp.json()
     except Exception as e:
-        print(f"[warn] Open-Meteo weather fetch failed: {e}")
+        print(f"[warn] Open-Meteo weather fetch failed for {lat},{lon}: {e}")
         return {}
 
     weather_out = {}
-    hourly = data.get("hourly", {})
-    units = data.get("hourly_units", {})
+    hourly = data.get("hourly", {}) or {}
     if "time" in hourly:
-        # pick first timestep as representative
         for key in weather_vars:
             try:
                 val = hourly.get(key, [None])[0]
                 weather_out[key] = float(val) if val is not None else None
-            except Exception:
+            except Exception as e:
+                print(f"[warn] parsing weather key '{key}' failed: {e}")
                 weather_out[key] = None
     return weather_out
+
 def fetch_openaq(lat, lon, radius_m=20000, days=7, max_locations=3):
     from openaq import OpenAQ
-    """
-    Fetch nearby OpenAQ measurements for the last `days` days.
-    Returns a JSON-like dict with mean values per pollutant.
-    Always returns a dict with 'pollutants' key (list), never None.
-    """
     api_key = os.environ.get("OPENAQ_API_KEY")
     pollutants_result = []
+    print(f"[debug] fetch_openaq called for {lat},{lon}")
 
-    # Try to fetch data from OpenAQ
     try:
         client = OpenAQ(api_key=api_key)
         dt_to = datetime.now(timezone.utc).replace(microsecond=0)
         dt_from = dt_to - timedelta(days=days)
 
-        # Nearby stations
         locs = client.locations.list(
             coordinates=(lat, lon),
             radius=radius_m,
@@ -196,7 +195,6 @@ def fetch_openaq(lat, lon, radius_m=20000, days=7, max_locations=3):
 
         if locs:
             all_meas = []
-
             for loc in locs:
                 sensors = client.locations.sensors(locations_id=loc.id).results
                 for s in sensors:
@@ -206,17 +204,15 @@ def fetch_openaq(lat, lon, radius_m=20000, days=7, max_locations=3):
                         datetime_to=dt_to,
                         limit=100
                     ).results
-
                     for m in meas:
                         param_name = s.parameter.get('displayName') if isinstance(s.parameter, dict) else s.parameter
-                        if m.value is not None and m.value >= 0:
+                        if m.value is not None and isinstance(m.value, (int, float)) and m.value >= 0:
                             all_meas.append({
                                 "location": loc.name,
                                 "pollutant": param_name,
                                 "value": m.value
                             })
 
-            # Aggregate means if we have measurements
             if all_meas:
                 import pandas as pd
                 df = pd.DataFrame(all_meas)
@@ -228,18 +224,41 @@ def fetch_openaq(lat, lon, radius_m=20000, days=7, max_locations=3):
                     })
 
     except Exception as e:
-        print(f"[warn] OpenAQ fetch failed: {e}")
+        # log but DO NOT return placeholder values
+        print(f"[warn] OpenAQ fetch failed for {lat},{lon}: {e}")
+        # Try a lightweight REST fallback (best-effort). If that fails, we return empty array.
+        try:
+            rest_url = "https://api.openaq.org/v2/measurements"
+            params = {
+                "coordinates": f"{lat},{lon}",
+                "radius": radius_m,
+                "limit": 100,
+                "date_from": (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(),
+                "date_to": datetime.now(timezone.utc).isoformat()
+            }
+            print(f"[debug] OpenAQ REST fallback request -> {rest_url} params={params}")
+            r = requests.get(rest_url, params=params, timeout=15)
+            print(f"[debug] OpenAQ REST HTTP {r.status_code}")
+            r.raise_for_status()
+            j = r.json()
+            results = j.get("results", []) or []
+            if results:
+                agg = {}
+                for it in results:
+                    param = it.get("parameter")
+                    val = it.get("value")
+                    if param and isinstance(val, (int, float)) and val >= 0:
+                        agg.setdefault(param, []).append(val)
+                for param, vals in agg.items():
+                    pollutants_result.append({"name": param, "mean_value": float(sum(vals) / len(vals))})
+        except Exception as e2:
+            print(f"[warn] OpenAQ REST fallback also failed for {lat},{lon}: {e2}")
+            # Finally: return empty list (no placeholders)
+            pollutants_result = []
 
-    # If nothing was fetched, optionally return a dummy placeholder (or leave empty)
-    if not pollutants_result:
-        print("[info] No OpenAQ measurements found; returning empty list.")
-        # Optional: add mock data for testing
-        pollutants_result = [
-            {"name": "PM2.5", "mean_value": 4.0},
-            {"name": "NO2", "mean_value": 12.0}
-        ]
-
+    # Return empty list (not placeholder) if nothing found
     return {"lat": lat, "lon": lon, "pollutants": pollutants_result}
+
 
 
 
@@ -251,7 +270,7 @@ def generate_gemini_recommendations(flat_pollutants: dict, top_n: int = 3, locat
     import google.generativeai as genai
     import json
     import os
-
+    
     genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
     model = genai.GenerativeModel("models/gemini-2.5-pro")
 
@@ -262,8 +281,8 @@ def generate_gemini_recommendations(flat_pollutants: dict, top_n: int = 3, locat
 
             {json.dumps(combined, indent=2)}
 
-            Based on these values, give **exactly {top_n} concise health and outdoor-activity recommendations**.
-            ⚠️ Respond **only in English**.
+            Based on these values, give *exactly {top_n} concise health and outdoor-activity recommendations*.
+            ⚠ Respond *only in English*.
             Return output strictly as a JSON array with the following fields:
             - text: short English recommendation
             - priority: high | medium | low
@@ -273,14 +292,14 @@ def generate_gemini_recommendations(flat_pollutants: dict, top_n: int = 3, locat
         response = model.generate_content(prompt)
         raw = (response.text or "").strip()
 
-        # Remove surrounding markdown fences if present (e.g. ```json ... ```).
-        if raw.startswith("```"):
-            # drop the first fence line (e.g. "```json" or "```")
+        # Remove surrounding markdown fences if present (e.g. json ... ).
+        if raw.startswith(""):
+            # drop the first fence line (e.g. "json" or "")
             first_nl = raw.find("\n")
             if first_nl != -1:
                 raw = raw[first_nl + 1 :].rstrip()
             # drop trailing fence
-            if raw.endswith("```"):
+            if raw.endswith(""):
                 raw = raw[: -3].strip()
 
         # If result contains extra text, extract the first JSON array it contains
@@ -317,7 +336,7 @@ def generate_report(lat: float, lon: float, hours: int = 48) -> dict:
     # Merge OpenAQ into OpenMeteo, OpenAQ takes priority
     if openaq and "pollutants" in openaq:
         for p in openaq["pollutants"]:
-            key = p["name"].lower().replace(".", "_").replace("-", "_")
+            key = p["name"].lower().replace(".", "").replace("-", "")
             pollutants[key] = {"value": float(p["mean_value"]), "unit": "µg/m³"}
 
     # Prepare combined dict for Gemini
@@ -325,6 +344,10 @@ def generate_report(lat: float, lon: float, hours: int = 48) -> dict:
 
     # Correct call: top_n=3, include a location name (use lat/lon or a friendly name)
     recommendations = generate_gemini_recommendations(flat_pollutants, top_n=3, location_name=f"{lat},{lon}")
+    if not recommendations:
+        tmp_report = {"pollutants": pollutants, "weather": weather}
+        fallback = generate_recommendations(tmp_report)
+        recommendations = fallback.get("recommendations", [])
 
     report = {
         "lat": lat,
@@ -430,7 +453,63 @@ def air_weather(lat: float = Query(...), lon: float = Query(...), hours: int = Q
         recs.append(Recommendation(text=r.get("text", ""), priority=r.get("priority", "low"), reason=r.get("reason", "")))
 
     return FullResponse(data=data, recommendations=recs)
+class Coordinates(BaseModel):
+    lat: float
+    lon: float
 
+def build_fullresponse_from_report(report: dict) -> FullResponse:
+    pollutants_pyd = {}
+    for k, v in (report.get("pollutants") or {}).items():
+        if isinstance(v, dict):
+            pollutants_pyd[k] = WeatherPollutant(value=v.get("value"), unit=v.get("unit"))
+        else:
+            pollutants_pyd[k] = WeatherPollutant(value=None, unit="")
+
+    openaq_list = None
+    openaq_obj = report.get("openaq")
+    if openaq_obj and isinstance(openaq_obj, dict) and "pollutants" in openaq_obj:
+        openaq_list = []
+        for p in openaq_obj["pollutants"]:
+            try:
+                openaq_list.append(Pollutant(name=p.get("name"), mean_value=float(p.get("mean_value"))))
+            except Exception:
+                continue
+
+    data = AirWeatherData(
+        lat=report.get("lat"),
+        lon=report.get("lon"),
+        pollutants=pollutants_pyd,
+        openaq_pollutants=openaq_list
+    )
+
+    recs = []
+    for r in report.get("recommendations", []):
+        recs.append(Recommendation(text=r.get("text", ""), priority=r.get("priority", "low"), reason=r.get("reason", "")))
+
+    return FullResponse(data=data, recommendations=recs)
+
+
+@app.post("/coords")
+def receive_coords(coords: Coordinates):
+    lat = coords.lat
+    lon = coords.lon
+    print(f"Received coords: lat={lat}, lon={lon}")
+
+    report = generate_report(lat, lon, 48)
+    # Return as JSON matching the exact shape required
+    return report
+
+# @app.get("/air_weather", response_model=FullResponse)
+# def air_weather(lat: float = Query(...), lon: float = Query(...), hours: int = Query(48)):
+#     try:
+#         report = generate_report(lat, lon, hours=hours)
+#         print(
+#             f"[info] Generated report for lat={lat}, lon={lon} at {report.get('timestamp')}"
+#         )
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Report generation failed: {e}")
+
+#     return report
 # -------------------------
 # Run server if executed directly
 # -------------------------
@@ -438,7 +517,3 @@ if __name__ == "__main__":
     import uvicorn
     # port 8000 used earlier in conversation; change if needed
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
-
-    

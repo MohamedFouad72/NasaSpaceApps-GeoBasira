@@ -17,11 +17,9 @@ export default function Navbar() {
           <li>
             <Link to="/">Home</Link>
           </li>
+
           <li>
-            <Link to="/dashboard">App</Link>
-          </li>
-          <li>
-            <Link to="/prototype">Prototype</Link>
+            <Link to="/prototype">App</Link>
           </li>
           <li>
             <Link to="/about">About</Link>
