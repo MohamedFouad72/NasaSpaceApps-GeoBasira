@@ -5,7 +5,7 @@
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 100;
+  z-index: 9999;
   font-family: Arial, sans-serif;
 }
 
@@ -57,7 +57,7 @@
 
 /* Action button */
 .navbar-action button {
-  background-color: #0077ff;
+  background-color: rgba(74, 222, 128, 1);
   color: #fff;
   border: none;
   padding: 8px 16px;
@@ -67,5 +67,5 @@
 }
 
 .navbar-action button:hover {
-  background-color: #005fcc;
+  background-color: rgba(59, 150, 92, 0.8);
 }

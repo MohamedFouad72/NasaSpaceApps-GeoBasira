@@ -1,135 +1,214 @@
-.hero {
+/* === Global & Font Styles === */
+/* Using a common sans-serif font stack */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   margin: 0;
-  /* background: linear-gradient(135deg, #0f1724, #1e293b); */
-  background-color: aqua;
-  color: rgb(0, 0, 0);
-  padding: 80px 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 90vh;
-  font-family: "Inter", sans-serif;
+  background-color: #f9fafb; /* Light gray background */
 }
 
+/* === Main Hero Container Layout === */
 .hero-container {
-  max-width: 1200px;
-  width: 100%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 50px;
+  justify-content: space-around;
+  min-height: 90vh;
+  padding: 2rem 4rem;
+  gap: 3rem;
+  overflow: hidden; /* Prevents glow from causing a scrollbar */
 }
 
-/* Left content */
-.hero-content {
+/* === Text Content Styling === */
+.hero-text {
   flex: 1;
+  max-width: 50%;
 }
 
-.hero-logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 15px;
-}
-
-.hero-logo img {
-  width: 60px;
-  height: 60px;
-}
-
-.hero-title {
-  font-size: 2.5rem;
-  margin: 0;
+.hero-text h1 {
+  font-size: 3rem; /* 60px */
+  font-weight: 700;
   line-height: 1.2;
+  color: #111827; /* Dark gray for high contrast */
 }
 
-.hero-title span {
-  color: #0d0e0e;
+.hero-text p {
+  font-size: 1.25rem; /* 20px */
+  margin-top: 1.5rem;
+  color: #4b5563; /* Softer gray for subheading */
+  max-width: 40ch; /* Limits the line length for readability */
 }
 
-.hero-subtext {
-  margin-top: 15px;
-  font-size: 1.1rem;
-  color: #1b1b1c;
-  max-width: 500px;
-}
-
-.hero-buttons {
-  margin-top: 25px;
-  display: flex;
-  gap: 15px;
-}
-
-.btn-primary {
-  background-color: #2563eb;
-  border: none;
-  padding: 12px 28px;
-  border-radius: 8px;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.btn-primary:hover {
-  background-color: #1d4ed8;
-}
-
-.btn-secondary {
-  background-color: transparent;
-  border: 2px solid #2563eb;
-  padding: 10px 26px;
-  border-radius: 8px;
-  color: #2563eb;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-secondary:hover {
-  background-color: #2563eb;
-  color: rgb(67, 62, 62);
-}
-
-.hero-trust {
-  margin-top: 20px;
-  font-size: 0.9rem;
-  color: #292a2c;
-}
-
-/* Right illustration */
-.hero-illustration {
+/* === Image and Glow Effect === */
+.hero-image-wrapper {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.globe {
-  width: 280px;
-  height: 280px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #0ea5a4, #2563eb, #0f1724);
-  box-shadow: 0 0 30px rgba(37, 99, 235, 0.5);
-  animation: spin 25s linear infinite;
+.earth-container {
+  position: relative; /* Establishes a positioning context for the tag */
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.earth-image {
+  max-width: 450px;
+  height: auto;
+  border-radius: 50%; /* Ensures the circular shadow */
+  /* The green glow effect using box-shadow */
+  box-shadow: 0 0 80px 40px rgba(74, 222, 128, 0.4);
 }
 
-/* Responsive */
+/* === "Air Quality" Tag Styling === */
+.air-quality-tag {
+  position: absolute;
+  bottom: 25%;
+  left: -10%;
+
+  background-color: rgba(255, 255, 255, 0.8);
+  /* Fallback for browsers that don't support backdrop-filter */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px); /* For Safari */
+
+  padding: 0.6rem 1.2rem;
+  border-radius: 9999px; /* Creates the pill shape */
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  white-space: nowrap; /* Prevents text from wrapping */
+}
+
+/* === Responsive Design for Smaller Screens === */
 @media (max-width: 900px) {
   .hero-container {
     flex-direction: column;
     text-align: center;
+    padding: 4rem 1.5rem;
+    min-height: auto;
   }
-  .hero-illustration {
-    margin-top: 40px;
+
+  .hero-text,
+  .hero-image-wrapper {
+    max-width: 100%;
+  }
+
+  .hero-text h1 {
+    font-size: 2.5rem; /* Smaller font for mobile */
+  }
+
+  .hero-text p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-image-wrapper {
+    margin-top: 4rem; /* Add space between text and image on mobile */
+  }
+
+  .earth-image {
+    max-width: 300px; /* Smaller image on mobile */
+  }
+
+  .air-quality-tag {
+    bottom: 20%;
+    left: -8%;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* src/components/AboutSection.css */
+
+.about-section-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 6rem 4rem; /* More vertical padding for separation */
+  background-color: #f9fafb; /* Same background as hero for continuity */
+  gap: 3rem;
+  box-sizing: border-box;
+}
+
+.about-text-content {
+  flex: 1;
+  max-width: 50%;
+}
+
+.about-text-content h2 {
+  font-size: 3rem; /* Larger heading for the section title */
+  font-weight: 700;
+  color: #111827;
+  margin-top: 0;
+  margin-bottom: 2rem; /* Space below the heading */
+}
+
+.about-text-content p {
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.75;
+  color: #4b5563;
+  margin-bottom: 1.5rem; /* Space between paragraphs */
+}
+
+/* Ensure the last paragraph doesn't have extra bottom margin if not desired */
+.about-text-content p:last-of-type {
+  margin-bottom: 0;
+}
+
+/* === Cloud Image and Glow Effect === */
+.about-image-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cloud-container {
+  position: relative;
+  width: 400px; /* Adjust size as needed */
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cloud-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  /* The green glow effect using box-shadow */
+  box-shadow: 0 0 80px 40px rgba(74, 222, 128, 0.4);
+  border-radius: 50%; /* Apply to make the glow circular, even if the image isn't */
+}
+
+/* === Responsive Design for Smaller Screens === */
+@media (max-width: 900px) {
+  .about-section-container {
+    flex-direction: column;
+    text-align: center;
+    padding: 4rem 1.5rem;
+  }
+
+  .about-text-content,
+  .about-image-wrapper {
+    max-width: 100%;
+  }
+
+  .about-text-content h2 {
+    font-size: 2.25rem; /* Smaller heading for mobile */
+    margin-bottom: 1.5rem;
+  }
+
+  .about-text-content p {
+    font-size: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .about-image-wrapper {
+    margin-top: 3rem; /* Space between text and image on mobile */
+  }
+
+  .cloud-container {
+    width: 280px; /* Smaller image on mobile */
   }
 }

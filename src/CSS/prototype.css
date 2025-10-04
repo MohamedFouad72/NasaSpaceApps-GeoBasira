@@ -1,0 +1,74 @@
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  font-family: sans-serif;
+  color: #333;
+}
+
+.left-panel,
+.right-panel {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.left-panel {
+  width: 300px;
+}
+
+.right-panel {
+  width: 400px;
+}
+
+.map-panel {
+  flex: 1;
+  position: relative;
+}
+
+#map {
+  height: 100%;
+  width: 100%;
+}
+
+.state-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 0.3rem 0;
+  padding: 0.5rem;
+  border: none;
+  background: #f9f9f9;
+  cursor: pointer;
+}
+
+.state-list button:hover {
+  background: #eee;
+}
+
+.state-list button.selected {
+  background: #dbeafe;
+}
+
+.result {
+  margin-top: 1rem;
+  border: 1px solid #ddd;
+  padding: 0.8rem;
+  background: #fafafa;
+}
+
+.result .big {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.small {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.chart {
+  margin-top: 1rem;
+  height: 300px;
+}

@@ -21,6 +21,9 @@ export default function Navbar() {
             <Link to="/dashboard">App</Link>
           </li>
           <li>
+            <Link to="/prototype">Prototype</Link>
+          </li>
+          <li>
             <Link to="/about">About</Link>
           </li>
         </ul>
