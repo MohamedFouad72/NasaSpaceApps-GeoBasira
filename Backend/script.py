@@ -5,8 +5,9 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import requests
 import os
-from datetime import datetime, timezone
-
+from datetime import datetime, timezone, timedelta
+from dotenv import load_dotenv
+load_dotenv()
 # -------------------------
 # Utilities (inlined)
 # -------------------------
@@ -170,7 +171,8 @@ def fetch_weather_open_meteo(lat: float, lon: float, hours: int = 48) -> Dict[st
             except Exception:
                 weather_out[key] = None
     return weather_out
-def fetch_openaq(lat, lon, radius_m=5000, days=7, max_locations=3):
+def fetch_openaq(lat, lon, radius_m=20000, days=7, max_locations=3):
+    from openaq import OpenAQ
     """
     Fetch nearby OpenAQ measurements for the last `days` days.
     Returns a JSON-like dict with mean values per pollutant.
@@ -240,42 +242,102 @@ def fetch_openaq(lat, lon, radius_m=5000, days=7, max_locations=3):
     return {"lat": lat, "lon": lon, "pollutants": pollutants_result}
 
 
+
+def generate_gemini_recommendations(flat_pollutants: dict, top_n: int = 3, location_name: str = "Unknown"):
+    """
+    Generate exactly top_n health/outdoor recommendations using Gemini.
+    flat_pollutants: dict where key = pollutant name (str), value = float
+    """
+    import google.generativeai as genai
+    import json
+    import os
+
+    genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+    model = genai.GenerativeModel("models/gemini-2.5-pro")
+
+    combined = {**flat_pollutants, "location": location_name}
+    prompt = f"""
+            You are an environmental health assistant.
+            Here is today's air-pollution data for {combined['location']}:
+
+            {json.dumps(combined, indent=2)}
+
+            Based on these values, give **exactly {top_n} concise health and outdoor-activity recommendations**.
+            ⚠️ Respond **only in English**.
+            Return output strictly as a JSON array with the following fields:
+            - text: short English recommendation
+            - priority: high | medium | low
+            - reason: a user-friendly explanation of WHY this recommendation matters
+            """
+    try:
+        response = model.generate_content(prompt)
+        raw = (response.text or "").strip()
+
+        # Remove surrounding markdown fences if present (e.g. ```json ... ```).
+        if raw.startswith("```"):
+            # drop the first fence line (e.g. "```json" or "```")
+            first_nl = raw.find("\n")
+            if first_nl != -1:
+                raw = raw[first_nl + 1 :].rstrip()
+            # drop trailing fence
+            if raw.endswith("```"):
+                raw = raw[: -3].strip()
+
+        # If result contains extra text, extract the first JSON array it contains
+        if not raw.lstrip().startswith("["):
+            a = raw.find("[")
+            b = raw.rfind("]")
+            if a != -1 and b != -1 and b > a:
+                raw = raw[a : b + 1]
+
+        recs = json.loads(raw)
+        if not isinstance(recs, list):
+            raise ValueError("parsed Gemini output is not a JSON array")
+        return recs
+
+    except Exception as e:
+        # helpful debug prints (safe to remove in production)
+        print("Gemini error:", e)
+        try:
+            print("raw response (truncated 1000 chars):", (response.text or "")[:1000])
+        except Exception:
+            pass
+        return []
+
+
+
 # -------------------------
 # Report generator
 # -------------------------
-def generate_report(lat: float, lon: float, hours: int = 48) -> Dict[str, Any]:
-    # optional geographic guard (uncomment if you want)
-    # if not in_north_america(lat, lon):
-    #     return {"error": "Coordinates are outside North America."}
-
-    # 1️⃣ Fetch data
+def generate_report(lat: float, lon: float, hours: int = 48) -> dict:
     pollutants = fetch_air_quality_open_meteo(lat, lon, hours=hours)
     weather = fetch_weather_open_meteo(lat, lon, hours=hours)
     openaq = fetch_openaq(lat, lon)
 
-    # 2️⃣ Override OpenMeteo with OpenAQ where available
+    # Merge OpenAQ into OpenMeteo, OpenAQ takes priority
     if openaq and "pollutants" in openaq:
         for p in openaq["pollutants"]:
-            name = p.get("name")
-            mean_value = p.get("mean_value")
-            if name and mean_value is not None:
-                # normalize key to match OpenMeteo naming if needed
-                key = name.lower().replace(".", "_").replace("-", "_")
-                pollutants[key] = {"value": float(mean_value), "unit": "µg/m³"}  # assume µg/m³
+            key = p["name"].lower().replace(".", "_").replace("-", "_")
+            pollutants[key] = {"value": float(p["mean_value"]), "unit": "µg/m³"}
 
-    # 3️⃣ Build report
+    # Prepare combined dict for Gemini
+    flat_pollutants = {k: v["value"] for k, v in pollutants.items() if v.get("value") is not None}
+
+    # Correct call: top_n=3, include a location name (use lat/lon or a friendly name)
+    recommendations = generate_gemini_recommendations(flat_pollutants, top_n=3, location_name=f"{lat},{lon}")
+
     report = {
         "lat": lat,
         "lon": lon,
         "timestamp": utc_timestamp(),
         "pollutants": pollutants,
         "weather": weather,
-        "openaq": openaq
+        "openaq": openaq,
+        "recommendations": recommendations
     }
-
-    # 4️⃣ Generate recommendations
-    report = generate_recommendations(report)
     return report
+
+
 
 
 # -------------------------
@@ -376,5 +438,7 @@ if __name__ == "__main__":
     import uvicorn
     # port 8000 used earlier in conversation; change if needed
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
 
     

@@ -43,10 +43,8 @@ function Dashboard() {
     try {
       // timeout helper (optional)
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
 
       const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeout);
 
       if (!res.ok) {
         let detail = "";
