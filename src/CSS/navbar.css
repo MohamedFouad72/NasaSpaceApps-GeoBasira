@@ -1,42 +1,61 @@
-/* Navbar container */
+/* Navbar base (fixed) */
 .navbar {
   background-color: #fff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 9999;
+  z-index: 1050;
   font-family: Arial, sans-serif;
 }
+
+/* Ensure page content isn't hidden under the fixed navbar:
+   Add this rule in a global stylesheet or to the top-level container:
+   body { padding-top: 64px; }  (adjust if you change navbar height)
+*/
 
 /* Inner container */
 .navbar-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
-  height: 60px;
+  padding: 0 16px;
+  height: 64px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-/* Logo section */
+/* Left group: hamburger + logo */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Logo */
 .navbar-logo {
   display: flex;
   align-items: center;
   font-weight: bold;
-  font-size: 1.2rem;
-  color: #333;
+  font-size: 1.1rem;
+  color: #111827;
 }
 
 .navbar-logo img {
   height: 40px;
   width: 40px;
   margin-right: 10px;
+  object-fit: contain;
 }
 
-/* Links */
+/* Desktop links */
 .navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.navbar-links ul {
   list-style: none;
   display: flex;
   gap: 20px;
@@ -48,24 +67,156 @@
   text-decoration: none;
   color: #333;
   font-weight: 500;
-  transition: color 0.2s ease-in-out;
+  transition: color 0.15s ease-in-out;
+  padding: 6px 4px;
 }
 
 .navbar-links a:hover {
-  color: #0077ff;
+  color: #0b5cff;
 }
 
-/* Action button */
+/* Action button (desktop) */
 .navbar-action button {
   background-color: rgba(74, 222, 128, 1);
   color: #fff;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s ease-in-out;
+  transition: background 0.15s ease-in-out;
+  font-weight: 600;
 }
 
 .navbar-action button:hover {
-  background-color: rgba(59, 150, 92, 0.8);
+  background-color: rgba(59, 150, 92, 0.9);
+}
+
+/* MOBILE: hamburger */
+.navbar-hamburger {
+  display: none; /* visible only on small screens */
+  background: transparent;
+  border: none;
+  padding: 6px;
+  margin: 0;
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* three lines */
+.hamburger-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #111827;
+  margin: 3px 0;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+/* animate into X when open */
+.hamburger-line.open:nth-child(1) {
+  transform: translateY(5px) rotate(45deg);
+}
+.hamburger-line.open:nth-child(2) {
+  opacity: 0;
+}
+.hamburger-line.open:nth-child(3) {
+  transform: translateY(-5px) rotate(-45deg);
+}
+
+/* Mobile menu styles (hidden desktop) */
+.navbar-links {
+  /* keep desktop style by default; mobile overridden in media query */
+}
+
+/* backdrop */
+.navbar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1020;
+  background: rgba(0, 0, 0, 0.25);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 767px) {
+  .navbar-container {
+    padding: 0 12px;
+    height: 56px;
+  }
+
+  .navbar-hamburger {
+    display: flex;
+  }
+
+  /* hide desktop links/action */
+  .navbar-links {
+    position: fixed;
+    top: 56px; /* under navbar */
+    left: 0;
+    right: 0;
+    height: calc(100vh - 56px);
+    background: #fff;
+    z-index: 1040;
+    transform: translateY(-10%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 220ms ease, opacity 220ms ease;
+    display: block;
+    padding: 18px;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+
+  /* when open: slide down */
+  .navbar-links.open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .navbar-links ul {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .navbar-links a {
+    display: block;
+    padding: 12px 8px;
+    font-size: 16px;
+    color: #111827;
+  }
+
+  /* mobile action (inside menu) */
+  .navbar-action {
+    display: none; /* hide desktop action */
+  }
+  .navbar-action-mobile {
+    margin-top: 16px;
+    display: flex;
+  }
+  .navbar-action-mobile button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(74, 222, 128, 1);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+}
+
+/* small polish: focus states */
+.navbar-hamburger:focus,
+.navbar-links a:focus,
+.navbar-action button:focus {
+  outline: 3px solid rgba(11, 92, 255, 0.15);
+  outline-offset: 2px;
+  border-radius: 6px;
 }

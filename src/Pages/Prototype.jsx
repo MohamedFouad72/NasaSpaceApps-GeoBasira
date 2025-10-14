@@ -15,13 +15,37 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function Prototype() {
-  const mapContainerRef = useRef(null); // DOM element for Leaflet
-  const mapRef = useRef(null); // Leaflet map instance
-  const markerRef = useRef(null); // current marker (so we can remove/update it)
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
 
-  const [report, setReport] = useState(null); // server JSON (FullResponse)
+  const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
+
+  // Sidebar open state (default collapsed on small screens)
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth >= 768; // open on tablet/desktop, closed on mobile
+    }
+    return true;
+  });
+
+  // Toggle sidebar (and tell Leaflet to resize)
+  const toggleSidebar = () => {
+    setSidebarOpen((s) => {
+      const next = !s;
+      // delay invalidateSize slightly to allow DOM layout
+      setTimeout(() => {
+        try {
+          mapRef.current && mapRef.current.invalidateSize();
+        } catch (e) {
+          console.error("Error handling resize:", e);
+        }
+      }, 220);
+      return next;
+    });
+  };
 
   // Helper to clear marker + report
   const clearMarkerAndReport = () => {
@@ -56,14 +80,12 @@ export default function Prototype() {
       const { lat, lng } = e.latlng;
       console.log("Clicked:", lat, lng);
 
-      // -- Marker behavior (IMMEDIATE) --
-      // Remove previous marker if present
+      // marker immediate behavior
       if (markerRef.current && mapRef.current) {
         mapRef.current.removeLayer(markerRef.current);
         markerRef.current = null;
       }
 
-      // Add a new marker immediately and show a "Loading..." popup
       if (mapRef.current) {
         markerRef.current = L.marker([lat, lng]).addTo(mapRef.current);
         markerRef.current
@@ -75,12 +97,11 @@ export default function Prototype() {
           .openPopup();
       }
 
-      // Reset previous report & show loading in sidebar
+      // reset and fetch
       setReport(null);
       setShowRaw(false);
       setLoading(true);
 
-      // -- Fetch backend (as before) --
       try {
         const res = await fetch(
           "https://nasaspaceapps-geobasira.onrender.com/coords",
@@ -98,7 +119,6 @@ export default function Prototype() {
             await res.text()
           );
           setLoading(false);
-          // Update marker popup to indicate error (if marker still exists)
           if (markerRef.current) {
             markerRef.current
               .bindPopup(
@@ -117,13 +137,12 @@ export default function Prototype() {
         console.log("Server response:", json);
         setReport(json);
 
-        // Update the marker popup to show a short summary (first recommendation if present)
+        // update popup with short summary
         try {
           let popupHtml = `<b>Coordinates</b><br/>Lat: ${lat.toFixed(
             3
           )}<br/>Lon: ${lng.toFixed(3)}`;
 
-          // If recommendations exist, show the first one in the popup
           if (
             json &&
             Array.isArray(json.recommendations) &&
@@ -132,7 +151,6 @@ export default function Prototype() {
             const first = json.recommendations[0];
             popupHtml += `<hr/><strong>${first.text}</strong><div style="font-size:11px;color:#444">${first.reason} <em>(${first.priority})</em></div>`;
           } else if (json && json.data && json.data.pollutants) {
-            // Otherwise try to show a small pollutant summary (first non-null pollutant)
             const pollutants = json.data.pollutants;
             const firstKey = Object.keys(pollutants).find(
               (k) => pollutants[k] && pollutants[k].value != null
@@ -151,7 +169,6 @@ export default function Prototype() {
         }
       } catch (err) {
         console.error("Error sending coords:", err);
-        // On error, update marker popup if possible
         if (markerRef.current) {
           markerRef.current
             .bindPopup(
@@ -168,14 +185,30 @@ export default function Prototype() {
 
     mapRef.current.on("click", onClick);
 
+    // handle screen resize: auto open/close sidebar on breakpoint changes
+    const onResize = () => {
+      try {
+        if (window.innerWidth < 768 && sidebarOpen) {
+          setSidebarOpen(false);
+        } else if (window.innerWidth >= 768 && !sidebarOpen) {
+          setSidebarOpen(true);
+        }
+      } catch (e) {
+        console.error("Error handling resize:", e.message);
+      }
+      // always invalidate map size on resize
+      setTimeout(() => mapRef.current && mapRef.current.invalidateSize(), 150);
+    };
+    window.addEventListener("resize", onResize);
+
     return () => {
-      // cleanup marker and map on unmount
+      window.removeEventListener("resize", onResize);
       try {
         if (markerRef.current && mapRef.current) {
           mapRef.current.removeLayer(markerRef.current);
         }
-      } catch (error) {
-        console.log("Error during cleanup:", error);
+      } catch (e) {
+        console.error("Error removing marker:", e);
       }
       markerRef.current = null;
       if (mapRef.current) {
@@ -184,9 +217,9 @@ export default function Prototype() {
         mapRef.current = null;
       }
     };
-  }, []); // run once only
+  }, [sidebarOpen]); // we include sidebarOpen so map invalidation after toggle works reliably
 
-  // Sidebar content helpers (unchanged)
+  // Sidebar helpers
   const renderHeadersOnly = () => (
     <div>
       <h3 style={{ marginTop: 0 }}>Location</h3>
@@ -300,14 +333,14 @@ export default function Prototype() {
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
           <button
             onClick={() => setShowRaw((s) => !s)}
-            style={{ padding: "6px 8px", cursor: "pointer" }}
+            style={{ padding: "8px 10px", cursor: "pointer", fontSize: 14 }}
           >
             {showRaw ? "Hide raw JSON" : "Show raw JSON"}
           </button>
 
           <button
             onClick={clearMarkerAndReport}
-            style={{ padding: "6px 8px", cursor: "pointer" }}
+            style={{ padding: "8px 10px", cursor: "pointer", fontSize: 14 }}
           >
             Clear
           </button>
@@ -330,28 +363,62 @@ export default function Prototype() {
     );
   };
 
-  // Layout styles (unchanged)
+  // Layout styles
   const sidebarWidth = 340;
   const sidebarStyle = {
     position: "fixed",
     left: 0,
     top: 0,
     bottom: 0,
-    width: sidebarWidth,
-    padding: 16,
+    width: sidebarOpen ? sidebarWidth : 0,
+    padding: sidebarOpen ? 16 : 0,
     background: "#fff",
-    boxShadow: "2px 0 6px rgba(0,0,0,0.08)",
+    boxShadow: sidebarOpen ? "2px 0 6px rgba(0,0,0,0.08)" : "none",
     zIndex: 1000,
     overflowY: "auto",
+    transition: "width 200ms ease, padding 200ms ease",
   };
+
   const mapWrapperStyle = {
-    marginLeft: sidebarWidth,
+    marginLeft: sidebarOpen ? sidebarWidth : 0,
     height: "100vh",
-    width: `calc(100% - ${sidebarWidth}px)`,
+    width: `calc(100% - ${sidebarOpen ? sidebarWidth : 0}px)`,
+    transition: "margin-left 200ms ease, width 200ms ease",
+  };
+
+  // Toggle button styles (overlay on mobile)
+  const toggleButtonStyle = {
+    position: "fixed",
+    left: sidebarOpen ? sidebarWidth - 42 : 8,
+    top: 12,
+    zIndex: 1100,
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    border: "none",
+    background: "#0b5cff",
+    color: "#fff",
+    fontSize: 18,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+    cursor: "pointer",
+    transition: "left 200ms ease",
   };
 
   return (
     <div style={{ display: "flex" }}>
+      {/* Toggle button */}
+      <button
+        aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+        onClick={toggleSidebar}
+        style={toggleButtonStyle}
+      >
+        {sidebarOpen ? "×" : "☰"}
+      </button>
+
+      {/* Sidebar */}
       <aside style={sidebarStyle}>
         <div
           style={{
@@ -362,12 +429,18 @@ export default function Prototype() {
         >
           <h2 style={{ margin: 0, fontSize: 18 }}>GeoBasira</h2>
         </div>
-        <hr style={{ margin: "10px 0 14px 0" }} />
-        {!report && !loading && renderHeadersOnly()}
-        {loading && renderLoading()}
-        {report && !loading && renderReport(report)}
+
+        {sidebarOpen && (
+          <>
+            <hr style={{ margin: "10px 0 14px 0" }} />
+            {!report && !loading && renderHeadersOnly()}
+            {loading && renderLoading()}
+            {report && !loading && renderReport(report)}
+          </>
+        )}
       </aside>
 
+      {/* Map */}
       <main style={mapWrapperStyle}>
         <div
           ref={mapContainerRef}
