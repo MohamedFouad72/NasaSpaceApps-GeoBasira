@@ -82,11 +82,14 @@ export default function Prototype() {
 
       // -- Fetch backend (as before) --
       try {
-        const res = await fetch("http://127.0.0.1:8000/coords", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lat, lon: lng }),
-        });
+        const res = await fetch(
+          "https://nasaspaceapps-geobasira.onrender.com/coords",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lat, lon: lng }),
+          }
+        );
 
         if (!res.ok) {
           console.error(
