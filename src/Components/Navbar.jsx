@@ -68,13 +68,7 @@ export default function Navbar() {
           </ul>
 
           <div className="navbar-action-mobile">
-            <button
-              onClick={() => {
-                setOpen(false); /* optional action */
-              }}
-            >
-              Get Started
-            </button>
+
           </div>
         </nav>
 

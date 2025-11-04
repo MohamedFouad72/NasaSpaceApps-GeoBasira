@@ -255,113 +255,236 @@ export default function Prototype() {
           </div>
         </div>
 
-        <h3>Pollutants</h3>
-        <div style={{ maxHeight: 220, overflowY: "auto", marginBottom: 12 }}>
-          {Object.keys(pollutants).length === 0 ? (
-            <div style={{ fontStyle: "italic" }}>
-              No pollutant data available.
-            </div>
-          ) : (
-            <table
-              style={{
-                width: "100%",
-                fontSize: 13,
-                borderCollapse: "collapse",
-              }}
-            >
-              <tbody>
-                {Object.entries(pollutants).map(([k, v]) => (
-                  <tr
-                    key={k}
-                    style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}
-                  >
-                    <td
-                      style={{
-                        padding: "6px 4px",
-                        textTransform: "uppercase",
-                        width: "55%",
-                      }}
-                    >
-                      {k}
-                    </td>
-                    <td style={{ padding: "6px 4px", textAlign: "right" }}>
-                      {v && v.value !== null
-                        ? `${v.value} ${v.unit || ""}`
-                        : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+<h3>Pollutants</h3>
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px",
+    marginBottom: 16,
+    maxHeight: 220,
+    overflowY: "auto",
+  }}
+>
+  {Object.keys(pollutants).length === 0 ? (
+  <div
+    style={{
+      gridColumn: "1 / -1",
+      fontStyle: "italic",
+      color: "#6b7280",
+      textAlign: "center",
+      padding: "8px 0",
+    }}
+  >
+    No pollutant data available.
+  </div>
+) : (
+  Object.entries(pollutants).map(([k, v]) => {
+    const value = v?.value ?? null;
+    const unit = v?.unit ?? "";
+    const severityColor =
+      value === null
+        ? "#9ca3af"
+        : value > 100
+        ? "#dc2626"
+        : value > 50
+        ? "#f59e0b"
+        : "#16a34a";
+    const bgGradient =
+      value === null
+        ? "linear-gradient(135deg, #f9fafb, #f3f4f6)"
+        : `linear-gradient(135deg, ${severityColor}15, #f9fafb)`;
+
+    return (
+      <div
+        key={k}
+        style={{
+          background: bgGradient,
+          border: `1px solid ${severityColor}30`,
+          borderRadius: 10,
+          padding: "12px 14px",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          transition: "transform 0.15s ease, box-shadow 0.15s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.02)";
+          e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.1)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)";
+        }}
+      >
+        <div style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>
+          {k.toUpperCase()}
         </div>
-
-        <h3>OpenAQ</h3>
-        <div style={{ marginBottom: 12 }}>
-          {openaq.length === 0 ? (
-            <div style={{ fontStyle: "italic" }}>No OpenAQ measurements.</div>
-          ) : (
-            <ul style={{ paddingLeft: 18, marginTop: 6 }}>
-              {openaq.map((p, i) => (
-                <li key={i}>
-                  {p.name}: {p.mean_value}
-                </li>
-              ))}
-            </ul>
-          )}
+        <div
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            color: severityColor,
+            marginTop: 4,
+          }}
+        >
+          {value !== null ? `${value} ${unit}` : "—"}
         </div>
-
-        <h3>Recommendations</h3>
-        <div>
-          {recs.length === 0 ? (
-            <div style={{ fontStyle: "italic" }}>No recommendations.</div>
-          ) : (
-            <ol style={{ paddingLeft: 18 }}>
-              {recs.map((r, i) => (
-                <li key={i}>
-                  <div style={{ fontWeight: 600 }}>{r.text}</div>
-                  <div style={{ fontSize: 12, color: "#444" }}>
-                    {r.reason}{" "}
-                    <span style={{ fontStyle: "italic" }}>({r.priority})</span>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
-
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button
-            onClick={() => setShowRaw((s) => !s)}
-            style={{ padding: "8px 10px", cursor: "pointer", fontSize: 14 }}
-          >
-            {showRaw ? "Hide raw JSON" : "Show raw JSON"}
-          </button>
-
-          <button
-            onClick={clearMarkerAndReport}
-            style={{ padding: "8px 10px", cursor: "pointer", fontSize: 14 }}
-          >
-            Clear
-          </button>
-        </div>
-
-        {showRaw && (
-          <pre
-            style={{
-              marginTop: 8,
-              maxHeight: 200,
-              overflow: "auto",
-              background: "#f7f7f7",
-              padding: 8,
-            }}
-          >
-            {JSON.stringify(r, null, 2)}
-          </pre>
-        )}
       </div>
     );
-  };
+  })
+)}
+
+</div>
+
+    <h3>OpenAQ</h3>
+<div style={{ marginBottom: 16 }}>
+  {openaq.length === 0 ? (
+    <div
+      style={{
+        fontStyle: "italic",
+        color: "#6b7280",
+        textAlign: "center",
+        padding: "8px 0",
+      }}
+    >
+      No OpenAQ measurements.
+    </div>
+  ) : (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "10px",
+        marginTop: 8,
+      }}
+    >
+      {openaq.map((p, i) => {
+        const value = p.mean_value ?? null;
+        const severityColor =
+          value === null
+            ? "#9ca3af"
+            : value > 100
+            ? "#dc2626"
+            : value > 50
+            ? "#f59e0b"
+            : "#16a34a";
+        const bgGradient =
+          value === null
+            ? "linear-gradient(135deg, #f9fafb, #f3f4f6)"
+            : `linear-gradient(135deg, ${severityColor}15, #f9fafb)`;
+
+        return (
+          <div
+            key={i}
+            style={{
+              background: bgGradient,
+              border: `1px solid ${severityColor}30`,
+              borderRadius: 10,
+              padding: "12px 14px",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              transition: "transform 0.15s ease, box-shadow 0.15s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "scale(1.02)";
+              e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)";
+            }}
+          >
+            <div style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>
+              {p.name}
+            </div>
+            <div
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: severityColor,
+                marginTop: 4,
+              }}
+            >
+              {value !== null ? value : "—"}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  )}
+</div>
+
+
+
+        <h3>Recommendations</h3>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {recs.length === 0 ? (
+          <div style={{ fontStyle: "italic" }}>No recommendations.</div>
+        ) : (
+          recs.map((r, i) => {
+            // Priority color cues
+            let color =
+              r.priority?.toUpperCase() === "HIGH"
+                ? "#dc2626"
+                : r.priority?.toUpperCase() === "MEDIUM"
+                ? "#f59e0b"
+                : "#16a34a";
+
+            return (
+              <div
+                key={i}
+                style={{
+                  background: "#f9fafb",
+                  border: `1px solid ${color}20`,
+                  borderLeft: `4px solid ${color}`,
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 14,
+                      color: "#111827",
+                      flex: 1,
+                    }}
+                  >
+                    {r.text}
+                  </div>
+                  <div
+                    style={{
+                      background: color,
+                      color: "#fff",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      borderRadius: 6,
+                      padding: "2px 6px",
+                      alignSelf: "flex-start",
+                    }}
+                  >
+                    {r.priority}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 13, color: "#444" }}>{r.reason}</div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      </div>
+    );
+  }
 
   // Layout styles
   const sidebarWidth = 340;
