@@ -222,121 +222,204 @@ export default function Prototype() {
   // Sidebar helpers
   const renderHeadersOnly = () => (
     <div>
-      <h3 style={{ marginTop: 0 }}>Location</h3>
+      <h3 style={{ marginTop: 0, marginBottom : "1em" }}>Location</h3>
       <h3>Pollutants</h3>
       <h3>Recommendations</h3>
     </div>
   );
 
   const renderLoading = () => (
-    <div>
-      <h3 style={{ marginTop: 0 }}>Loading…</h3>
-      <p>Please wait while we fetch data for the clicked point.</p>
-    </div>
-  );
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "40px 0",
+      textAlign: "center",
+      color: "#374151",
+    }}
+  >
+    {/* Spinner */}
+    <div
+      style={{
+        width: 40,
+        height: 40,
+        border: "4px solid #e5e7eb",
+        borderTop: "4px solid #3b82f6",
+        borderRadius: "50%",
+        animation: "spin 1s linear infinite",
+        marginBottom: 16,
+      }}
+    />
+
+    <h3 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>Fetching Data…</h3>
+    <p style={{ fontSize: 14, color: "#6b7280", marginTop: 6 }}>
+      Please wait while we process your location request.
+    </p>
+
+    {/* Spinner animation */}
+    <style>
+      {`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}
+    </style>
+  </div>
+);
+
 
   const renderReport = (r) => {
     if (!r) return renderHeadersOnly();
 
-    const data = r.data || {};
-    const pollutants = data.pollutants || {};
-    const openaq = data.openaq_pollutants || [];
+    const pollutants = r.pollutants || {};
+    const openaq = r.openaq?.pollutants || [];
     const recs = r.recommendations || [];
+    const data = {
+      lat: r.lat,
+      lon: r.lon,
+      weather: r.weather || {},
+    };
 
     return (
       <div>
-        <h3 style={{ marginTop: 0 }}>Location</h3>
-        <div style={{ marginBottom: 12 }}>
-          <div>
-            <strong>Lat:</strong> {data.lat}
-          </div>
-          <div>
-            <strong>Lon:</strong> {data.lon}
-          </div>
-        </div>
+        <h3 style={{ marginTop: 0}}>Location</h3>
+        <div
+  style={{
+    marginBottom: 16,
+    background: "linear-gradient(135deg, #f9fafb, #f3f4f6)",
+    border: "1px solid #e5e7eb",
+    borderRadius: 10,
+    padding: "12px 14px",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  }}
+>
+  <div style={{ fontSize: 13, color: "#6b7280", fontWeight: 500 }}>
+    Coordinates
+  </div>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      fontSize: 15,
+      fontWeight: 600,
+      color: "#111827",
+    }}
+  >
+    <div>
+      <span style={{ color: "#6b7280", fontWeight: 500 }}>Lat:</span>{" "}
+      {data.lat?.toFixed(4) ?? "—"}
+    </div>
+    <div>
+      <span style={{ color: "#6b7280", fontWeight: 500 }}>Lon:</span>{" "}
+      {data.lon?.toFixed(4) ?? "—"}
+    </div>
+  </div>
+</div>
+
 
 <h3>Pollutants</h3>
 <div
   style={{
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "8px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+    gap: "10px",
     marginBottom: 16,
-    maxHeight: 220,
-    overflowY: "auto",
   }}
 >
   {Object.keys(pollutants).length === 0 ? (
-  <div
-    style={{
-      gridColumn: "1 / -1",
-      fontStyle: "italic",
-      color: "#6b7280",
-      textAlign: "center",
-      padding: "8px 0",
-    }}
-  >
-    No pollutant data available.
-  </div>
-) : (
-  Object.entries(pollutants).map(([k, v]) => {
-    const value = v?.value ?? null;
-    const unit = v?.unit ?? "";
-    const severityColor =
-      value === null
-        ? "#9ca3af"
-        : value > 100
-        ? "#dc2626"
-        : value > 50
-        ? "#f59e0b"
-        : "#16a34a";
-    const bgGradient =
-      value === null
-        ? "linear-gradient(135deg, #f9fafb, #f3f4f6)"
-        : `linear-gradient(135deg, ${severityColor}15, #f9fafb)`;
+    <div
+      style={{
+        gridColumn: "1 / -1",
+        fontStyle: "italic",
+        color: "#6b7280",
+        textAlign: "center",
+        padding: "8px 0",
+      }}
+    >
+      No pollutant data available.
+    </div>
+  ) : (
+    Object.entries(pollutants).map(([k, v]) => {
+      const value = v?.value ?? null;
+      const unit = v?.unit ?? "";
+      const severityColor =
+        value === null
+          ? "#9ca3af"
+          : value > 100
+          ? "#dc2626"
+          : value > 50
+          ? "#f59e0b"
+          : "#16a34a";
+      const bgGradient =
+        value === null
+          ? "linear-gradient(135deg, #f9fafb, #f3f4f6)"
+          : `linear-gradient(135deg, ${severityColor}15, #ffffff)`;
 
-    return (
-      <div
-        key={k}
-        style={{
-          background: bgGradient,
-          border: `1px solid ${severityColor}30`,
-          borderRadius: 10,
-          padding: "12px 14px",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          transition: "transform 0.15s ease, box-shadow 0.15s ease",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "scale(1.02)";
-          e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.1)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)";
-        }}
-      >
-        <div style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>
-          {k.toUpperCase()}
-        </div>
+      return (
         <div
+          key={k}
           style={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: severityColor,
-            marginTop: 4,
+            background: bgGradient,
+            border: `1px solid ${severityColor}25`,
+            borderRadius: 10,
+            padding: "10px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "transform 0.15s ease, box-shadow 0.15s ease",
+            textAlign: "center",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.04)";
+            e.currentTarget.style.boxShadow = "0 3px 8px rgba(0,0,0,0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
           }}
         >
-          {value !== null ? `${value} ${unit}` : "—"}
+          <div
+            style={{
+              fontSize: 12,
+              color: "#374151",
+              fontWeight: 600,
+              marginBottom: 4,
+            }}
+          >
+            {k.toUpperCase()}
+          </div>
+          <div
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              color: severityColor,
+            }}
+          >
+            {value !== null ? `${value}` : "—"}
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: "#6b7280",
+              marginTop: 2,
+            }}
+          >
+            {unit}
+          </div>
         </div>
-      </div>
-    );
-  })
-)}
-
+      );
+    })
+  )}
 </div>
+
 
     <h3>OpenAQ</h3>
 <div style={{ marginBottom: 16 }}>
@@ -349,7 +432,7 @@ export default function Prototype() {
         padding: "8px 0",
       }}
     >
-      No OpenAQ measurements.
+      No OpenAQ measurements. <br />(Falling back to OpenMeteo)
     </div>
   ) : (
     <div
@@ -487,7 +570,7 @@ export default function Prototype() {
   }
 
   // Layout styles
-  const sidebarWidth = 340;
+  const sidebarWidth = 470;
   const sidebarStyle = {
     position: "fixed",
     left: 0,
@@ -527,8 +610,7 @@ export default function Prototype() {
     justifyContent: "center",
     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
     cursor: "pointer",
-    transition: "left 200ms ease",
-  };
+    transition: "left 200ms ease"  };
 
   return (
     <div style={{ display: "flex" }}>

@@ -37,11 +37,27 @@ export default function Navbar() {
             <span className={`hamburger-line ${open ? "open" : ""}`} />
             <span className={`hamburger-line ${open ? "open" : ""}`} />
           </button>
-
-          <div className="navbar-logo">
+          <Link to="/" style={{textDecoration: "none"}}>
+          <div className="navbar-logo ms-5" style={{marginLeft:"-10rem"}}>
             <img src={Logo} alt="GeoBasira Logo" />
-            <span>GeoBasira</span>
+            <span
+            style={{
+              fontSize: 20,
+              textDecoration: "none",
+              fontWeight: 700,
+              background: "linear-gradient(90deg, #0b5cff, #3b82f6)",
+              WebkitBackgroundClip: "text",
+              color: "black",
+              WebkitTextFillColor: "transparent",
+              letterSpacing: "0.5px",
+              textShadow: "0 1px 2px rgba(0,0,0,0.05)",
+              textDecorationLine: "none"
+            }}
+          >
+            GeoBasira
+          </span>
           </div>
+          </Link>
         </div>
 
         {/* Links (desktop) */}
