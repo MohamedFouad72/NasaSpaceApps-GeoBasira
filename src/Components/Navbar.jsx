@@ -37,26 +37,9 @@ export default function Navbar() {
             <span className={`hamburger-line ${open ? "open" : ""}`} />
             <span className={`hamburger-line ${open ? "open" : ""}`} />
           </button>
-          <Link to="/" style={{textDecoration: "none"}}>
-          <div className="navbar-logo ms-5" style={{marginLeft:"-10rem"}}>
+          <Link to="/" className="navbar-logo">
             <img src={Logo} alt="GeoBasira Logo" />
-            <span
-            style={{
-              fontSize: 20,
-              textDecoration: "none",
-              fontWeight: 700,
-              background: "linear-gradient(90deg, #0b5cff, #3b82f6)",
-              WebkitBackgroundClip: "text",
-              color: "black",
-              WebkitTextFillColor: "transparent",
-              letterSpacing: "0.5px",
-              textShadow: "0 1px 2px rgba(0,0,0,0.05)",
-              textDecorationLine: "none"
-            }}
-          >
-            GeoBasira
-          </span>
-          </div>
+            <span>GeoBasira</span>
           </Link>
         </div>
 
@@ -90,7 +73,9 @@ export default function Navbar() {
 
         {/* Desktop action button */}
         <div className="navbar-action">
-          <button>Get Started</button>
+          <Link to="/prototype">
+            <button>Get Started</button>
+          </Link>
         </div>
       </div>
 

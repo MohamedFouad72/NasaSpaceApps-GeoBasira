@@ -1,40 +1,63 @@
 /* === Global & Font Styles === */
-/* Using a common sans-serif font stack */
-body {
-  font-family: "Poppins", sans-serif;
-  margin: 0;
-  background-color: #f9fafb; /* Light gray background */
-}
+/* Removed body override to allow index.css to control global fonts */
+/* Headings will automatically use Poppins from index.css */
+
 
 /* === Main Hero Container Layout === */
 .hero-container {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  min-height: 90vh;
-  padding: 2rem 4rem;
+  min-height: 100vh;
+  padding: calc(2rem + 72px) 4rem 2rem 4rem;
+  /* Account for fixed navbar */
   gap: 3rem;
-  overflow: hidden; /* Prevents glow from causing a scrollbar */
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, #f0f9ff 0%, #f9fafb 100%);
 }
 
 /* === Text Content Styling === */
 .hero-text {
   flex: 1;
-  max-width: 50%;
+  max-width: 600px;
 }
 
 .hero-text h1 {
-  font-size: 3rem; /* 60px */
-  font-weight: 700;
-  line-height: 1.2;
-  color: #111827; /* Dark gray for high contrast */
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .hero-text p {
-  font-size: 1.25rem; /* 20px */
-  margin-top: 1.5rem;
-  color: #4b5563; /* Softer gray for subheading */
-  max-width: 40ch; /* Limits the line length for readability */
+  font-size: 1.25rem;
+  color: #6b7280;
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+/* CTA Button */
+.hero-cta-button {
+  display: inline-block;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  padding: 16px 36px;
+  border-radius: 99px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-decoration: none;
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+  transition: all 0.3s ease;
+}
+
+.hero-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.5);
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
 }
 
 /* === Image and Glow Effect === */
@@ -46,109 +69,67 @@ body {
 }
 
 .earth-container {
-  position: relative; /* Establishes a positioning context for the tag */
+  position: relative;
 }
 
 .earth-image {
-  max-width: 450px;
+  max-width: 500px;
   height: auto;
-  border-radius: 50%; /* Ensures the circular shadow */
-  /* The green glow effect using box-shadow */
-  box-shadow: 0 0 80px 40px rgba(74, 222, 128, 0.4);
+  border-radius: 50%;
+  /* Blue-ish glow */
+  box-shadow: 0 0 100px 30px rgba(59, 130, 246, 0.25);
+  animation: float 6s ease-in-out infinite;
 }
 
-/* === "Air Quality" Tag Styling === */
-.air-quality-tag {
-  position: absolute;
-  bottom: 25%;
-  left: -10%;
-
-  background-color: rgba(255, 255, 255, 0.8);
-  /* Fallback for browsers that don't support backdrop-filter */
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px); /* For Safari */
-
-  padding: 0.6rem 1.2rem;
-  border-radius: 9999px; /* Creates the pill shape */
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  white-space: nowrap; /* Prevents text from wrapping */
-}
-
-/* === Responsive Design for Smaller Screens === */
-@media (max-width: 900px) {
-  .hero-container {
-    flex-direction: column;
-    text-align: center;
-    padding: 4rem 1.5rem;
-    min-height: auto;
+@keyframes float {
+  0% {
+    transform: translateY(0px);
   }
 
-  .hero-text,
-  .hero-image-wrapper {
-    max-width: 100%;
+  50% {
+    transform: translateY(-20px);
   }
 
-  .hero-text h1 {
-    font-size: 2.5rem; /* Smaller font for mobile */
-  }
-
-  .hero-text p {
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .hero-image-wrapper {
-    margin-top: 4rem; /* Add space between text and image on mobile */
-  }
-
-  .earth-image {
-    max-width: 300px; /* Smaller image on mobile */
-  }
-
-  .air-quality-tag {
-    bottom: 20%;
-    left: -8%;
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
+  100% {
+    transform: translateY(0px);
   }
 }
 
-/* src/components/AboutSection.css */
-
+/* === About Section Syles (Restored & Improved) === */
 .about-section-container {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 6rem 4rem; /* More vertical padding for separation */
-  background-color: #f9fafb; /* Same background as hero for continuity */
-  gap: 3rem;
+  padding: 8rem 4rem;
+  background-color: #fff;
+  gap: 4rem;
   box-sizing: border-box;
 }
 
 .about-text-content {
   flex: 1;
-  max-width: 50%;
+  max-width: 600px;
 }
 
 .about-text-content h2 {
-  font-size: 3rem; /* Larger heading for the section title */
-  font-weight: 700;
+  font-size: 3rem;
+  font-weight: 800;
   color: #111827;
   margin-top: 0;
-  margin-bottom: 2rem; /* Space below the heading */
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #111827, #4b5563);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .about-text-content p {
-  font-size: 1.125rem; /* 18px */
-  line-height: 1.75;
-  color: #4b5563;
-  margin-bottom: 1.5rem; /* Space between paragraphs */
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
 }
 
-/* Ensure the last paragraph doesn't have extra bottom margin if not desired */
 .about-text-content p:last-of-type {
   margin-bottom: 0;
 }
@@ -163,7 +144,7 @@ body {
 
 .cloud-container {
   position: relative;
-  width: 400px; /* Adjust size as needed */
+  width: 450px;
   height: auto;
   display: flex;
   justify-content: center;
@@ -174,40 +155,51 @@ body {
   max-width: 100%;
   height: auto;
   display: block;
-  /* The green glow effect using box-shadow */
-  box-shadow: 0 0 80px 40px rgba(74, 222, 128, 0.4);
-  border-radius: 50%; /* Apply to make the glow circular, even if the image isn't */
+  /* Premium Blue/Purple Glow */
+  box-shadow: 0 0 100px 40px rgba(99, 102, 241, 0.25);
+  border-radius: 50%;
+  animation: float 7s ease-in-out infinite reverse;
 }
 
-/* === Responsive Design for Smaller Screens === */
+/* === Responsive Design === */
 @media (max-width: 900px) {
+
+  .hero-container,
   .about-section-container {
     flex-direction: column;
     text-align: center;
-    padding: 4rem 1.5rem;
+    padding: 6rem 1.5rem 4rem 1.5rem;
+    /* adjusted for mobile */
+    min-height: auto;
+    gap: 4rem;
   }
 
+  .hero-text,
+  .hero-image-wrapper,
   .about-text-content,
   .about-image-wrapper {
     max-width: 100%;
   }
 
+  .hero-text h1,
   .about-text-content h2 {
-    font-size: 2.25rem; /* Smaller heading for mobile */
-    margin-bottom: 1.5rem;
+    font-size: 2.5rem;
   }
 
+  .hero-text p,
   .about-text-content p {
-    font-size: 1rem;
     margin-left: auto;
     margin-right: auto;
   }
 
+  .hero-image-wrapper,
   .about-image-wrapper {
-    margin-top: 3rem; /* Space between text and image on mobile */
+    margin-top: 2rem;
   }
 
+  .earth-image,
+  .cloud-image,
   .cloud-container {
-    width: 280px; /* Smaller image on mobile */
+    max-width: 300px;
   }
 }

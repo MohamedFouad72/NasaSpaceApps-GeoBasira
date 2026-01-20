@@ -1,7 +1,7 @@
 import React from "react";
 import "../CSS/Hero.css"; // Import the CSS file
 
-// Remember to replace with your actual image path
+import { Link } from "react-router-dom";
 import earthImage from "../assets/earth.png";
 import cloudImage from "../assets/cloud.png";
 
@@ -15,6 +15,11 @@ const Hero = () => {
             human Decisions
           </h1>
           <p>Turning Earth Observations Into Clear Actions</p>
+          <div style={{ marginTop: 32 }}>
+            <Link to="/prototype" className="hero-cta-button">
+              Get Started
+            </Link>
+          </div>
         </div>
         <div className="hero-image-wrapper">
           <div className="earth-container">
@@ -26,39 +31,32 @@ const Hero = () => {
           </div>
         </div>
       </section>
+
+      {/* Restored & Improved About Section */}
       <section className="about-section-container">
         <div className="about-text-content">
           <h2>About GeoBasira</h2>
           <p>
             Air pollution is not just a number on a chart — it is a daily health
             threat that millions face, often without clear guidance on how to
-            respond. While satellite missions like NASA's TEMPO, ground-based
-            networks like OpenAQ and Pandora, and weather forecasts provide vast
-            amounts of data, most of it remains locked behind complex dashboards
-            and raw measurements.
+            respond.
           </p>
           <p>
             GeoBasira bridges this gap. Our platform integrates multiple trusted
             data sources – satellites, ground sensors, and weather models – and
-            transforms them into clear, actionable insights. Instead of
-            overwhelming users with technical datasets, we deliver practical
-            guidance: when to cancel outdoor activities, when to issue alerts,
-            and how to minimize exposure.
+            transforms them into clear, actionable insights.
           </p>
           <p>
-            With a focus on transparency, accuracy, and usability, GeoBasira
-            empowers schools, event organizers, local officials, and communities
-            to make the right decisions at the right time. By turning complex
-            Earth observation data into simple actions, we bring space science
-            closer to everyday life – protecting health, supporting resilience,
-            and ensuring that data leads to real-world impact.
+            With a focus on transparency, accuracy, and usability, we empower
+            communities to make the right decisions. By turning complex data into
+            simple actions, we bring space science closer to everyday life.
           </p>
         </div>
         <div className="about-image-wrapper">
           <div className="cloud-container">
             <img
               src={cloudImage}
-              alt="Stylized cloud with lightning and green glow"
+              alt="Stylized cloud with lightning"
               className="cloud-image"
             />
           </div>

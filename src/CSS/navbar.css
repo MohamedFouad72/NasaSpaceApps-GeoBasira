@@ -1,25 +1,25 @@
-/* Navbar base (fixed) */
+/* Navbar base (fixed) with Glassmorphism */
 .navbar {
-  background-color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 1050;
-  font-family: Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: all 0.3s ease;
 }
-
-/* Ensure page content isn't hidden under the fixed navbar:
-   Add this rule in a global stylesheet or to the top-level container:
-   body { padding-top: 64px; }  (adjust if you change navbar height)
-*/
 
 /* Inner container */
 .navbar-container {
-  max-width: 1200px;
+  max-width: 1400px;
+  /* Wider container */
   margin: 0 auto;
-  padding: 0 16px;
-  height: 64px;
+  padding: 0 24px;
+  height: 72px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -29,194 +29,225 @@
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 /* Logo */
 .navbar-logo {
   display: flex;
   align-items: center;
-  font-weight: bold;
-  font-size: 1.1rem;
-  color: #111827;
+  gap: 4px;
+  text-decoration: none;
 }
 
 .navbar-logo img {
-  height: 40px;
-  width: 40px;
-  margin-right: 10px;
+  height: 42px;
+  width: 42px;
   object-fit: contain;
+}
+
+.navbar-logo span {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* fallback */
+  -webkit-text-fill-color: transparent;
 }
 
 /* Desktop links */
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 32px;
 }
 
 .navbar-links ul {
   list-style: none;
   display: flex;
-  gap: 20px;
+  gap: 8px;
+  /* Gap for pills */
   margin: 0;
   padding: 0;
 }
 
 .navbar-links a {
   text-decoration: none;
-  color: #333;
+  color: #4b5563;
   font-weight: 500;
-  transition: color 0.15s ease-in-out;
-  padding: 6px 4px;
+  font-size: 15px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  transition: all 0.2s ease;
 }
 
 .navbar-links a:hover {
-  color: #0b5cff;
+  color: #2563eb;
+  background-color: #eff6ff;
 }
 
-/* Action button (desktop) */
-.navbar-action button {
-  background-color: rgba(74, 222, 128, 1);
-  color: #fff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.15s ease-in-out;
+.navbar-links a.active {
+  color: #2563eb;
+  background-color: #eff6ff;
   font-weight: 600;
 }
 
+/* Action button (Get Started) */
+.navbar-action button {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
 .navbar-action button:hover {
-  background-color: rgba(59, 150, 92, 0.9);
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+.navbar-action button:active {
+  transform: translateY(0);
 }
 
 /* MOBILE: hamburger */
 .navbar-hamburger {
-  display: none; /* visible only on small screens */
+  display: none;
   background: transparent;
   border: none;
-  padding: 6px;
-  margin: 0;
+  padding: 8px;
   cursor: pointer;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
   align-items: center;
   justify-content: center;
 }
 
-/* three lines */
+.navbar-hamburger:hover {
+  background: #f3f4f6;
+}
+
 .hamburger-line {
   display: block;
-  width: 22px;
+  width: 20px;
   height: 2px;
-  background: #111827;
-  margin: 3px 0;
-  transition: transform 0.18s ease, opacity 0.18s ease;
+  background: #1f2937;
+  margin: 4px 0;
+  border-radius: 2px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* animate into X when open */
 .hamburger-line.open:nth-child(1) {
-  transform: translateY(5px) rotate(45deg);
+  transform: translateY(6px) rotate(45deg);
 }
+
 .hamburger-line.open:nth-child(2) {
   opacity: 0;
+  transform: translateX(10px);
 }
+
 .hamburger-line.open:nth-child(3) {
-  transform: translateY(-5px) rotate(-45deg);
+  transform: translateY(-6px) rotate(-45deg);
 }
 
-/* Mobile menu styles (hidden desktop) */
-.navbar-links {
-  /* keep desktop style by default; mobile overridden in media query */
-}
-
-/* backdrop */
+/* Mobile menu */
 .navbar-backdrop {
   position: fixed;
   inset: 0;
   z-index: 1020;
-  background: rgba(0, 0, 0, 0.25);
-  -webkit-tap-highlight-color: transparent;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
 }
 
-/* Mobile-specific adjustments */
-@media (max-width: 767px) {
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
   .navbar-container {
-    padding: 0 12px;
-    height: 56px;
+    padding: 0 16px;
+    height: 64px;
   }
 
   .navbar-hamburger {
     display: flex;
   }
 
-  /* hide desktop links/action */
   .navbar-links {
     position: fixed;
-    top: 56px; /* under navbar */
+    top: 0;
     left: 0;
-    right: 0;
-    height: calc(100vh - 56px);
+    bottom: 0;
+    width: 280px;
     background: #fff;
-    z-index: 1040;
-    transform: translateY(-10%);
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 220ms ease, opacity 220ms ease;
-    display: block;
-    padding: 18px;
-    overflow-y: auto;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    z-index: 1060;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 24px;
+    gap: 24px;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+    display: flex;
+    /* maintain flex */
   }
 
-  /* when open: slide down */
   .navbar-links.open {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
+    transform: translateX(0);
   }
 
   .navbar-links ul {
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
   }
 
   .navbar-links a {
-    display: block;
-    padding: 12px 8px;
     font-size: 16px;
-    color: #111827;
-  }
-
-  /* mobile action (inside menu) */
-  .navbar-action {
-    display: none; /* hide desktop action */
-  }
-  .navbar-action-mobile {
-    margin-top: 16px;
-    display: flex;
-  }
-  .navbar-action-mobile button {
-    width: 100%;
     padding: 12px;
     border-radius: 8px;
-    border: none;
-    background: rgba(74, 222, 128, 1);
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
+    color: #1f2937;
   }
-}
 
-/* small polish: focus states */
-.navbar-hamburger:focus,
-.navbar-links a:focus,
-.navbar-action button:focus {
-  outline: 3px solid rgba(11, 92, 255, 0.15);
-  outline-offset: 2px;
-  border-radius: 6px;
+  .navbar-links a:hover {
+    background-color: #f3f4f6;
+  }
+
+  .navbar-action {
+    display: none;
+  }
+
+  /* Mobile 'Get Started' injected inside navbar-links manually or via flex order? 
+     React code handles "navbar-action-mobile" 
+  */
+  .navbar-action-mobile {
+    margin-top: auto;
+  }
+
+  .navbar-action-mobile button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+  }
 }
