@@ -20,7 +20,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -91,5 +91,8 @@ def receive_coords(coords: Coordinates):
 
 if __name__ == "__main__":
     import uvicorn
-    # port 8000 used earlier in conversation; change if needed
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    # port 8000 used locally; Render/Railway will provide a PORT env var
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+

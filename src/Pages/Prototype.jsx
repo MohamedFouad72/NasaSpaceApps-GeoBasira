@@ -3,6 +3,7 @@ import "../CSS/prototype.css";
 import MapComponent from "../Components/MapComponent";
 import LeftSidebar from "../Components/LeftSidebar";
 import RightSidebar from "../Components/RightSidebar";
+import { API_BASE_URL } from "../config";
 
 export default function Prototype() {
   const [report, setReport] = useState(null);
@@ -22,7 +23,7 @@ export default function Prototype() {
 
     try {
       const res = await fetch(
-        "http://localhost:8000/coords",
+        `${API_BASE_URL}/coords`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { API_BASE_URL } from "../config";
+
 
 function Dashboard() {
   const [lat, setLat] = useState("31.438037");
@@ -9,7 +11,8 @@ function Dashboard() {
   const [error, setError] = useState(null);
 
   // Change this if your backend runs on a different port
-  const baseUrl = "http://127.0.0.1:8000/air_weather";
+  const baseUrl = `${API_BASE_URL}/air_weather`;
+
 
   const validateCoords = (latVal, lonVal) => {
     const la = parseFloat(latVal);
@@ -219,7 +222,7 @@ function Dashboard() {
 
             <h4 style={{ marginTop: 12 }}>Recommendations</h4>
             {Array.isArray(data.recommendations) &&
-            data.recommendations.length > 0 ? (
+              data.recommendations.length > 0 ? (
               <ul>
                 {data.recommendations.map((r, idx) => (
                   <li key={idx} style={{ marginBottom: 8 }}>
