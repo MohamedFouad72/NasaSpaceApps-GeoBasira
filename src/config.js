@@ -3,3 +3,8 @@
 // It can be overridden by VITE_API_BASE_URL for production deployment
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:8000`;
 
+if (import.meta.env.PROD && !import.meta.env.VITE_API_BASE_URL) {
+    console.warn("WARNING: VITE_API_BASE_URL is not set. Requests will default to the current domain on port 8000, which may fail if Backend is elsewhere.");
+}
+
+
